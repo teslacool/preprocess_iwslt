@@ -9,6 +9,7 @@ srclng=en
 tgtlng=$1
 if [ -z $tgtlng ]; then
     echo "bash preprocess.sh tgtlng"
+    exit
 fi
 if [ $tgtlng != "es" -a $tgtlng != 'zh' -a $tgtlng != 'ja' ]; then
     echo "unknown target language"
@@ -85,9 +86,9 @@ fi
 
 
 cd $MAIN_PATH
-SRC_TRAIN_PREPROCESSING="grep -v '<url>' | grep -v '<speaker>' | grep -v '< reviewer' | grep -v '< translator' | grep -v '<doc docid' | grep -v '</doc>' | grep -v '<talkid>' | grep -v '<keywords>' | sed -e 's/<title>//g' | sed -e 's/<\/title>//g' | sed -e 's/<description>//g' | sed -e 's/<\/description>//g' "
+SRC_TRAIN_PREPROCESSING="grep -v '<url>' | grep -v '<speaker>' | grep -v '<reviewer' | grep -v '<translator' | grep -v '<doc docid' | grep -v '</doc>' | grep -v '<talkid>' | grep -v '<keywords>' | sed -e 's/<title>//g' | sed -e 's/<\/title>//g' | sed -e 's/<description>//g' | sed -e 's/<\/description>//g' "
 SRC_TRAIN_PREPROCESSING="$SRC_TRAIN_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $srclng | $REM_NON_PRINT_CHAR | $TOKENIZER -l $srclng -no-escape -threads $N_THREADS"
-TGT_TRAIN_PREPROCESSING="grep -v '<url>' | grep -v '<speaker>' | grep -v '< reviewer' | grep -v '< translator' | grep -v '<doc docid' | grep -v '</doc>' | grep -v '<talkid>' | grep -v '<keywords>' | sed -e 's/<title>//g' | sed -e 's/<\/title>//g' | sed -e 's/<description>//g' | sed -e 's/<\/description>//g' "
+TGT_TRAIN_PREPROCESSING="grep -v '<url>' | grep -v '<speaker>' | grep -v '<reviewer' | grep -v '<translator' | grep -v '<doc docid' | grep -v '</doc>' | grep -v '<talkid>' | grep -v '<keywords>' | sed -e 's/<title>//g' | sed -e 's/<\/title>//g' | sed -e 's/<description>//g' | sed -e 's/<\/description>//g' "
 if [ $tgtlng == zh ]
 then
 TGT_TRAIN_PREPROCESSING="$TGT_TRAIN_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $tgtlng | $REM_NON_PRINT_CHAR | python zh_jieba.py "
