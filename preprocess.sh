@@ -91,7 +91,7 @@ SRC_TRAIN_PREPROCESSING="$SRC_TRAIN_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NO
 TGT_TRAIN_PREPROCESSING="grep -v '<url>' | grep -v '<speaker>' | grep -v '<reviewer' | grep -v '<translator' | grep -v '<doc docid' | grep -v '</doc>' | grep -v '<talkid>' | grep -v '<keywords>' | sed -e 's/<title>//g' | sed -e 's/<\/title>//g' | sed -e 's/<description>//g' | sed -e 's/<\/description>//g' "
 if [ $tgtlng == zh ]
 then
-TGT_TRAIN_PREPROCESSING="$TGT_TRAIN_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $tgtlng | $REM_NON_PRINT_CHAR | python zh_jieba.py "
+TGT_TRAIN_PREPROCESSING="$TGT_TRAIN_PREPROCESSING  | $REM_NON_PRINT_CHAR | python zh_jieba.py "
 else
 TGT_TRAIN_PREPROCESSING="$TGT_TRAIN_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $tgtlng | $REM_NON_PRINT_CHAR | $TOKENIZER -l $tgtlng -no-escape -threads $N_THREADS"
 fi
@@ -101,7 +101,7 @@ SRC_TEST_PREPROCESSING="$SRC_TEST_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM
 TGT_TEST_PREPROCESSING="grep '<seg id' | sed -e 's/<seg id=\"[0-9]*\">\s*//g' | sed -e 's/\s*<\/seg>\s*//g'  "
 if [ $tgtlng == zh ]
 then
-TGT_TEST_PREPROCESSING="$TGT_TEST_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $tgtlng | $REM_NON_PRINT_CHAR | python zh_jieba.py "
+TGT_TEST_PREPROCESSING="$TGT_TEST_PREPROCESSING | $REM_NON_PRINT_CHAR | python zh_jieba.py "
 else
 TGT_TEST_PREPROCESSING="$TGT_TEST_PREPROCESSING | $REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $tgtlng | $REM_NON_PRINT_CHAR | $TOKENIZER -l $tgtlng -no-escape -threads $N_THREADS"
 fi
@@ -116,22 +116,29 @@ fi
 
 if [ ! -f $bpecodes ]
 then
-    $FASTBPE learnbpe $CODES  $src_train_tok $tgt_train_tok > $bpecodes
+    if [ $tgtlng == 'zh' ]; then
+        $FASTBPE learnbpe $CODES $src_train_tok > $bpecodes.$srclng
+        $FASTBPE learnbpe $CODES $tgt_train_tok > $bpecodes.$tgtlng
+    else
+        $FASTBPE learnbpe $CODES  $src_train_tok $tgt_train_tok > $bpecodes
+        cp $bpecodes $bpecodes.$srclng
+        cp $bpecodes $bpecodes.$tgtlng
+    fi
 fi
 if [ ! -f $src_train_bpe ]
 then
-    $FASTBPE applybpe $src_train_bpe $src_train_tok $bpecodes
+    $FASTBPE applybpe $src_train_bpe $src_train_tok $bpecodes.$srclng
 fi
 if [ ! -f $tgt_train_bpe ]
 then
-    $FASTBPE applybpe $tgt_train_bpe $tgt_train_tok $bpecodes
+    $FASTBPE applybpe $tgt_train_bpe $tgt_train_tok $bpecodes.$tgtlng
 fi
 if [ ! -f $src_test_bpe ]
 then
     eval "cat $src_valid_raw | $SRC_TEST_PREPROCESSING > $src_valid_tok"
-    $FASTBPE applybpe $src_valid_bpe $src_valid_tok $bpecodes
+    $FASTBPE applybpe $src_valid_bpe $src_valid_tok $bpecodes.$srclng
     eval "cat $tgt_valid_raw | $TGT_TEST_PREPROCESSING > $tgt_valid_tok"
-    $FASTBPE applybpe $tgt_valid_bpe $tgt_valid_tok $bpecodes
+    $FASTBPE applybpe $tgt_valid_bpe $tgt_valid_tok $bpecodes.$tgtlng
     eval "cat $src_test_raw | $SRC_TEST_PREPROCESSING > $src_test_tok"
-    $FASTBPE applybpe $src_test_bpe $src_test_tok $bpecodes
+    $FASTBPE applybpe $src_test_bpe $src_test_tok $bpecodes.$srclng
 fi
