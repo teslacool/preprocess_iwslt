@@ -81,7 +81,7 @@ fi
 if [ ! -f  $src_test_raw ]
 then
     cp en-$tgtlng/IWSLT14.TED.tst2014.$srclng-$tgtlng.$srclng.xml $src_test_raw
-    cp $tgtlng-en/IWSLT14.TED.tst2014.$tgtlng-$srclng.$tgtlng.xml $tgt_test_raw
+    cp en-$tgtlng/IWSLT14.TED.tst2014.$srclng-$tgtlng.$tgtlng.xml $tgt_test_raw
 fi
 
 
